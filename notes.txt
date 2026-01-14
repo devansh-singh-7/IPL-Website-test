@@ -1,0 +1,24 @@
+Chris – Page Layout & Architecture
+You are now the primary builder for the website's structure. You will handle the design implementation and layout for both the Home Page and the Team Page.
+
+Home Page Execution: Write the content and build the layout for the Quote box, Tax Benefit box, "Recent Humanitarian Activities" section, and the IPL profile background.
+
+Team Page Structure: Build the structural skeleton for the "Our Team" page. This includes setting up the Big Photo section, the President & Leadership block, and creating the necessary placeholders for the other team categories so Tanish can populate them later.
+
+Content Hierarchy: Finalize the text structure for the President & Leadership sections.
+
+Deliverable: Fully constructed layouts for the Home and Team pages, ready for final data entry.
+
+
+
+
+Devansh – Site Cleanup & Quality Control
+Your role shifts to maintenance and quality assurance. You are responsible for clearing out old data and ensuring the site remains stable.
+
+Site-Wide Cleanup: Execute the removal of all unwanted elements across the entire site. This specifically includes deleting all Hindi text, the "Love / Friendship / Humanity / Visitors" section, and any Friends Day content.
+
+Visual Verification: Ensure that removing these sections does not leave awkward gaps or broken UI elements.
+
+Responsiveness: Conduct mobile responsiveness checks to ensure the site looks correct on all devices after the cleanup.
+
+Deliverable: A clean, error-free site with all legacy content removed.
