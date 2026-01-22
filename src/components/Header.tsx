@@ -102,7 +102,7 @@ const Header: React.FC<Props> = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-0.5 flex-nowrap shrink min-w-0 overflow-hidden">
+        <nav className="hidden lg:flex items-center gap-2 flex-nowrap shrink min-w-0 overflow-hidden">
           {navLinks.map((link) =>
             link.hasDropdown ? (
               <div
