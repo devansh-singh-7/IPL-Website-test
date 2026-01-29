@@ -95,11 +95,7 @@ const setStoredCooldown = (timestamp: number): void => {
     localStorage.setItem('contact_cooldown', timestamp.toString())
 }
 
-const IconBox: React.FC<React.PropsWithChildren> = ({ children }) => (
-    <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-red-50 text-red-700 shrink-0">
-        {children}
-    </div>
-)
+
 
 export default function Contact() {
     const { t } = useTranslation()
@@ -116,9 +112,12 @@ export default function Contact() {
     const [dailyLimitReached, setDailyLimitReached] = useState(false)
 
     // Track when user started interacting with the form
-    const formLoadTime = useRef<number>(Date.now())
+    const formLoadTime = useRef<number>(0)
 
     useEffect(() => {
+        // Set form load time on client side
+        formLoadTime.current = Date.now()
+
         const timer = setInterval(() => setNow(Date.now()), 1000)
 
         // Restore cooldown from localStorage on mount
