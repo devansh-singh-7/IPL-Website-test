@@ -1,11 +1,99 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import emailjs from '@emailjs/browser'
 import { useTranslation } from '@/contexts/TranslationContext'
-import { Mail, Phone, MapPin, Clock } from 'lucide-react'
+import { Mail, Phone, MapPin, Clock, ShieldCheck } from 'lucide-react'
 
 type Errors = Record<string, string>
+
+// Anti-spam configuration
+const COOLDOWN_MS = 60000 // 60 seconds between submissions
+const MAX_DAILY_SUBMISSIONS = 5
+const MIN_FORM_FILL_TIME_MS = 3000 // Minimum 3 seconds to fill form (bots are faster)
+const MAX_MESSAGE_LENGTH = 2000
+const MAX_SUBJECT_LENGTH = 120
+const MAX_NAME_LENGTH = 100
+
+// Helper: Check for spam patterns in text
+const containsSpamPatterns = (text: string): boolean => {
+    // Check for excessive URLs
+    const urlPattern = /(https?:\/\/|www\.)[^\s]+/gi
+    const urls = text.match(urlPattern) || []
+    if (urls.length > 2) return true
+
+    // Check for common spam keywords
+    const spamKeywords = [
+        /\b(viagra|casino|lottery|winner|prize|click here|buy now|free money)\b/i,
+        /\b(cryptocurrency|bitcoin|investment opportunity|make money fast)\b/i,
+    ]
+    return spamKeywords.some(pattern => pattern.test(text))
+}
+
+// Helper: Sanitize input (basic XSS prevention)
+const sanitizeInput = (input: string): string => {
+    return input
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#x27;')
+        .trim()
+}
+
+// Helper: Get daily submission count from localStorage
+const getDailySubmissions = (): { count: number; date: string } => {
+    if (typeof window === 'undefined') return { count: 0, date: '' }
+    try {
+        const data = localStorage.getItem('contact_submissions')
+        if (!data) return { count: 0, date: '' }
+        return JSON.parse(data)
+    } catch {
+        return { count: 0, date: '' }
+    }
+}
+
+// Helper: Set daily submission count
+const incrementDailySubmissions = (): void => {
+    if (typeof window === 'undefined') return
+    const today = new Date().toISOString().split('T')[0]
+    const current = getDailySubmissions()
+
+    if (current.date === today) {
+        localStorage.setItem('contact_submissions', JSON.stringify({
+            count: current.count + 1,
+            date: today
+        }))
+    } else {
+        localStorage.setItem('contact_submissions', JSON.stringify({
+            count: 1,
+            date: today
+        }))
+    }
+}
+
+// Helper: Check if daily limit exceeded
+const isDailyLimitExceeded = (): boolean => {
+    const today = new Date().toISOString().split('T')[0]
+    const current = getDailySubmissions()
+    return current.date === today && current.count >= MAX_DAILY_SUBMISSIONS
+}
+
+// Helper: Get stored cooldown timestamp
+const getStoredCooldown = (): number => {
+    if (typeof window === 'undefined') return 0
+    try {
+        const stored = localStorage.getItem('contact_cooldown')
+        return stored ? parseInt(stored, 10) : 0
+    } catch {
+        return 0
+    }
+}
+
+// Helper: Set cooldown timestamp
+const setStoredCooldown = (timestamp: number): void => {
+    if (typeof window === 'undefined') return
+    localStorage.setItem('contact_cooldown', timestamp.toString())
+}
 
 const IconBox: React.FC<React.PropsWithChildren> = ({ children }) => (
     <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-lg bg-red-50 text-red-700 shrink-0">
@@ -25,49 +113,113 @@ export default function Contact() {
     const [honeypot, setHoneypot] = useState('')
     const [cooldownUntil, setCooldownUntil] = useState(0)
     const [now, setNow] = useState<number>(0)
+    const [dailyLimitReached, setDailyLimitReached] = useState(false)
+
+    // Track when user started interacting with the form
+    const formLoadTime = useRef<number>(Date.now())
 
     useEffect(() => {
         const timer = setInterval(() => setNow(Date.now()), 1000)
+
+        // Restore cooldown from localStorage on mount
+        const storedCooldown = getStoredCooldown()
+        if (storedCooldown > Date.now()) {
+            setCooldownUntil(storedCooldown)
+        }
+
+        // Check daily limit on mount
+        setDailyLimitReached(isDailyLimitExceeded())
         return () => clearInterval(timer)
     }, [])
 
     useEffect(() => {
         if (status.success) {
             const timer = setTimeout(() => setStatus(s => ({ ...s, success: false })), 5000)
+            // Update daily limit check after successful submission
+            setDailyLimitReached(isDailyLimitExceeded())
             return () => clearTimeout(timer)
         }
     }, [status.success])
 
     const validate = () => {
         const newErrors: Errors = {}
-        if (!name.trim()) newErrors.name = t('contact.error_name_required', 'Please enter your name')
+
+        // Name validation
+        if (!name.trim()) {
+            newErrors.name = t('contact.error_name_required', 'Please enter your name')
+        } else if (name.trim().length > MAX_NAME_LENGTH) {
+            newErrors.name = t('contact.error_name_long', 'Name is too long')
+        }
+
+        // Email validation with stricter pattern
         if (!email.trim()) {
             newErrors.email = t('contact.error_email_required', 'Please enter your email')
-        } else if (!/^\S+@\S+\.\S+$/.test(email)) {
+        } else if (!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
             newErrors.email = t('contact.error_email_invalid', 'Please enter a valid email address')
         }
+
+        // Subject validation
         if (!subject.trim()) {
             newErrors.subject = t('contact.error_subject_required', 'Please enter a subject')
         } else if (subject.trim().length < 3) {
             newErrors.subject = t('contact.error_subject_short', 'Subject is too short')
-        } else if (subject.trim().length > 120) {
-            newErrors.subject = t('contact.error_subject_long', 'Subject is too long')
+        } else if (subject.trim().length > MAX_SUBJECT_LENGTH) {
+            newErrors.subject = t('contact.error_subject_long', 'Subject is too long (max 120 characters)')
         }
+
+        // Message validation with spam check
         if (!message.trim()) {
             newErrors.message = t('contact.error_message_required', 'Please enter a message')
         } else if (message.trim().length < 10) {
-            newErrors.message = t('contact.error_message_short', 'Message is too short')
+            newErrors.message = t('contact.error_message_short', 'Message is too short (minimum 10 characters)')
+        } else if (message.trim().length > MAX_MESSAGE_LENGTH) {
+            newErrors.message = t('contact.error_message_long', 'Message is too long (max 2000 characters)')
+        } else if (containsSpamPatterns(message)) {
+            newErrors.message = t('contact.error_spam_detected', 'Your message contains content that looks like spam. Please revise it.')
         }
+
+        // Check subject for spam patterns too
+        if (subject.trim() && containsSpamPatterns(subject)) {
+            newErrors.subject = t('contact.error_spam_detected', 'Your subject contains content that looks like spam. Please revise it.')
+        }
+
         return newErrors
     }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
-        if (cooldownUntil && now < cooldownUntil) return
+
+        // Check cooldown
+        if (cooldownUntil && now < cooldownUntil) {
+            const secondsLeft = Math.ceil((cooldownUntil - now) / 1000)
+            setErrors({ submit: t('contact.error_cooldown', `Please wait ${secondsLeft} seconds before sending another message.`) })
+            return
+        }
+
         setStatus({ loading: false, success: false })
 
+        // Honeypot check (silent fail for bots)
         if (honeypot) {
             console.warn('Honeypot triggered; aborting send')
+            // Fake success to confuse bots
+            setStatus({ loading: false, success: true })
+            return
+        }
+
+        // Check daily submission limit
+        if (isDailyLimitExceeded()) {
+            setDailyLimitReached(true)
+            setErrors({ submit: t('contact.error_daily_limit', 'You have reached the maximum number of messages for today. Please try again tomorrow.') })
+            return
+        }
+
+        // Timing check - bots submit too fast
+        const timeSinceLoad = Date.now() - formLoadTime.current
+        if (timeSinceLoad < MIN_FORM_FILL_TIME_MS) {
+            console.warn('Form submitted too fast; potential bot')
+            // Silent fail - fake success for bots
+            await new Promise((r) => setTimeout(r, 1000))
+            setStatus({ loading: false, success: true })
             return
         }
 
@@ -85,29 +237,42 @@ export default function Contact() {
             const templateId = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID as string | undefined
             const publicKey = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY as string | undefined
 
+            // Sanitize inputs before sending
+            const sanitizedName = sanitizeInput(name)
+            const sanitizedEmail = sanitizeInput(email)
+            const sanitizedSubject = sanitizeInput(subject)
+            const sanitizedMessage = sanitizeInput(message)
+
             if (!serviceId || !templateId || !publicKey) {
                 console.warn('EmailJS env vars missing; skipping real send')
                 await new Promise((r) => setTimeout(r, 500))
                 setStatus({ loading: false, success: true })
                 setName(''); setEmail(''); setSubject(''); setMessage('')
                 setErrors({})
-                setCooldownUntil(Date.now() + 5000)
+                incrementDailySubmissions()
+                const newCooldown = Date.now() + COOLDOWN_MS
+                setCooldownUntil(newCooldown)
+                setStoredCooldown(newCooldown)
+                formLoadTime.current = Date.now() // Reset form load time
                 return
             }
 
             const templateParams = {
-                from_name: name,
-                reply_to: email,
-                subject,
-                message,
-                to_email: 'iplmumbai12395@gmail.com',
+                name: sanitizedName,
+                email: sanitizedEmail,
+                subject: sanitizedSubject,
+                message: sanitizedMessage,
             }
 
             await emailjs.send(serviceId, templateId, templateParams, publicKey)
             setStatus({ loading: false, success: true })
             setName(''); setEmail(''); setSubject(''); setMessage('')
             setErrors({})
-            setCooldownUntil(Date.now() + 5000)
+            incrementDailySubmissions()
+            const newCooldown = Date.now() + COOLDOWN_MS
+            setCooldownUntil(newCooldown)
+            setStoredCooldown(newCooldown)
+            formLoadTime.current = Date.now() // Reset form load time
         } catch (err) {
             console.error(err)
             setStatus({ loading: false, success: false })
@@ -122,12 +287,12 @@ export default function Contact() {
             {/* Hero */}
             <section className="relative bg-transparent pt-12 md:pt-16 lg:pt-20 pb-12 overflow-hidden" style={{ minHeight: '320px' }}>
                 <div className="absolute inset-0 z-0 pointer-events-none">
-                        <img
-                            src="/Images/page-title_back.jpg"
-                            alt="Contact background"
-                            className="w-[85%] h-full opacity-40 object-contain mx-auto"
-                            style={{ objectPosition: 'center' }}
-                        />
+                    <img
+                        src="/Images/page-title_back.jpg"
+                        alt="Contact background"
+                        className="w-[85%] h-full opacity-40 object-contain mx-auto"
+                        style={{ objectPosition: 'center' }}
+                    />
                     <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.04)' }} />
                 </div>
                 <div className="relative z-10 container-custom mx-auto text-center">
@@ -193,6 +358,7 @@ export default function Contact() {
                                             id="name"
                                             type="text"
                                             value={name}
+                                            maxLength={MAX_NAME_LENGTH}
                                             onChange={(e) => { setName(e.target.value); if (errors.name) setErrors(s => ({ ...s, name: '' })) }}
                                             placeholder={t('contact.form_name_placeholder', 'Enter your name')}
                                             required
@@ -200,6 +366,7 @@ export default function Contact() {
                                             aria-invalid={errors.name ? 'true' : 'false'}
                                             aria-describedby={errors.name ? 'name-error' : undefined}
                                             className="mt-2 block w-full rounded-lg border border-neutral-300 bg-white text-neutral-900 px-4 py-2.5 shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-red-100 focus:border-red-600"
+                                            disabled={dailyLimitReached}
                                         />
                                         {errors.name && <p id="name-error" className="mt-1 text-sm text-red-700">{errors.name}</p>}
                                     </div>
@@ -227,6 +394,7 @@ export default function Contact() {
                                         id="subject"
                                         type="text"
                                         value={subject}
+                                        maxLength={MAX_SUBJECT_LENGTH}
                                         onChange={(e) => { setSubject(e.target.value); if (errors.subject) setErrors(s => ({ ...s, subject: '' })) }}
                                         placeholder={t('contact.form_subject_placeholder', 'Enter subject')}
                                         required
@@ -234,16 +402,23 @@ export default function Contact() {
                                         aria-invalid={errors.subject ? 'true' : 'false'}
                                         aria-describedby={errors.subject ? 'subject-error' : undefined}
                                         className="mt-2 block w-full rounded-lg border border-neutral-300 bg-white text-neutral-900 px-4 py-2.5 shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-red-100 focus:border-red-600"
+                                        disabled={dailyLimitReached}
                                     />
                                     {errors.subject && <p id="subject-error" className="mt-1 text-sm text-red-700">{errors.subject}</p>}
                                 </div>
 
                                 <div>
-                                    <label htmlFor="message" className="block text-sm font-semibold text-neutral-700">{t('contact.form_message', 'Message')}</label>
+                                    <div className="flex justify-between items-center">
+                                        <label htmlFor="message" className="block text-sm font-semibold text-neutral-700">{t('contact.form_message', 'Message')}</label>
+                                        <span className={`text-xs ${message.length > MAX_MESSAGE_LENGTH * 0.9 ? 'text-red-600 font-medium' : 'text-neutral-400'}`}>
+                                            {message.length}/{MAX_MESSAGE_LENGTH}
+                                        </span>
+                                    </div>
                                     <textarea
                                         id="message"
                                         rows={6}
                                         value={message}
+                                        maxLength={MAX_MESSAGE_LENGTH}
                                         onChange={(e) => { setMessage(e.target.value); if (errors.message) setErrors(s => ({ ...s, message: '' })) }}
                                         placeholder={t('contact.form_message_placeholder', 'Enter your message')}
                                         required
@@ -251,6 +426,7 @@ export default function Contact() {
                                         aria-invalid={errors.message ? 'true' : 'false'}
                                         aria-describedby={errors.message ? 'message-error' : undefined}
                                         className="mt-2 block w-full rounded-lg border border-neutral-300 bg-white text-neutral-900 px-4 py-3 shadow-sm placeholder-neutral-400 focus:outline-none focus:ring-4 focus:ring-red-100 focus:border-red-600"
+                                        disabled={dailyLimitReached}
                                     />
                                     {errors.message && <p id="message-error" className="mt-1 text-sm text-red-700">{errors.message}</p>}
                                 </div>
@@ -258,9 +434,9 @@ export default function Contact() {
                                 <div>
                                     <button
                                         type="submit"
-                                        disabled={status.loading || (cooldownUntil ? now < cooldownUntil : false)}
-                                        aria-disabled={status.loading || (cooldownUntil ? now < cooldownUntil : false)}
-                                        className={`w-full inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-white transition ${(status.loading || (cooldownUntil ? now < cooldownUntil : false)) ? 'opacity-80 cursor-not-allowed' : 'hover:-translate-y-0.5'} bg-red-700 hover:bg-red-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-red-200`}
+                                        disabled={status.loading || dailyLimitReached || (cooldownUntil ? now < cooldownUntil : false)}
+                                        aria-disabled={status.loading || dailyLimitReached || (cooldownUntil ? now < cooldownUntil : false)}
+                                        className={`w-full inline-flex items-center justify-center gap-2 rounded-full px-8 py-4 font-semibold text-white transition ${(status.loading || dailyLimitReached || (cooldownUntil ? now < cooldownUntil : false)) ? 'opacity-80 cursor-not-allowed' : 'hover:-translate-y-0.5'} bg-red-700 hover:bg-red-800 shadow-md hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-red-200`}
                                     >
                                         {status.loading && (
                                             <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -268,13 +444,23 @@ export default function Contact() {
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                                             </svg>
                                         )}
-                                        {(cooldownUntil ? now < cooldownUntil : false) && !status.loading
-                                            ? t('contact.cooldown', 'Please wait...')
-                                            : status.loading
-                                                ? t('contact.sending', 'Sending...')
-                                                : t('contact.form_submit', 'Send Message')}
+                                        {dailyLimitReached
+                                            ? t('contact.daily_limit_reached', 'Daily limit reached')
+                                            : (cooldownUntil && now < cooldownUntil)
+                                                ? `${t('contact.cooldown', 'Please wait')} (${Math.ceil((cooldownUntil - now) / 1000)}s)`
+                                                : status.loading
+                                                    ? t('contact.sending', 'Sending...')
+                                                    : t('contact.form_submit', 'Send Message')}
                                     </button>
                                     {errors.submit && <p className="mt-2 text-sm text-red-700">{errors.submit}</p>}
+                                </div>
+
+                                {/* Security Notice */}
+                                <div className="flex items-center gap-2 pt-4 border-t border-neutral-100">
+                                    <ShieldCheck className="w-4 h-4 text-green-600 shrink-0" />
+                                    <p className="text-xs text-neutral-500">
+                                        {t('contact.security_notice', 'This form is protected against spam and abuse. Your data is sent securely.')}
+                                    </p>
                                 </div>
                             </form>
                         </div>

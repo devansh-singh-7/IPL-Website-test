@@ -126,12 +126,6 @@ const ImageCarousel: React.FC = () => {
 export default function Home() {
   const { t } = useTranslation()
 
-  const stats = [
-    { icon: Heart, value: '40+', labelKey: 'home.stats.activities', defaultLabel: 'Activities' },
-    { icon: Calendar, value: '30+', labelKey: 'home.stats.years', defaultLabel: 'Years' },
-    { icon: Award, value: '80G', labelKey: 'home.stats.certificate', defaultLabel: 'Certified' },
-  ] as const
-
   const features = [
     { icon: HandHeart, link: '/humanitarian-services', titleKey: 'home.feature1_title', descKey: 'home.feature1_desc', color: 'bg-rose-50 text-rose-600' },
     { icon: Users, link: '/friendship-meet', titleKey: 'home.feature2_title', descKey: 'home.feature2_desc', color: 'bg-blue-50 text-blue-600' },
@@ -188,30 +182,6 @@ export default function Home() {
                   <Mail className="w-5 h-5" />
                   {String(t('nav.contact', 'Contact'))}
                 </Link>
-              </div>
-
-              {/* Stats Row - Now below buttons */}
-              <div className="mt-10 max-w-3xl mx-auto grid grid-cols-3 gap-6 border-t border-neutral-200 pt-8">
-                {stats.map((stat, idx) => {
-                  const Icon = stat.icon
-                  return (
-                    <div key={idx} className="text-center">
-                      <div className="flex items-center justify-center gap-2 mb-1 text-red-700 animate-fade-in" style={{ animationDelay: `${0.1 * idx}s` }}>
-                        <Icon className="w-5 h-5" />
-                        {idx === 0 ? (
-                          <span className="text-2xl font-bold"><CountUp end={40} duration={1.2} />+</span>
-                        ) : idx === 1 ? (
-                          <span className="text-2xl font-bold"><CountUp end={30} duration={1.2} />+</span>
-                        ) : (
-                          <span className="text-2xl font-bold">80G</span>
-                        )}
-                      </div>
-                      <p className="text-sm text-neutral-500 font-medium uppercase tracking-wider">
-                        {String(t(stat.labelKey, stat.defaultLabel))}
-                      </p>
-                    </div>
-                  )
-                })}
               </div>
             </div>
 

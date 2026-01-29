@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useTranslation } from '../contexts/TranslationContext'
-import { Menu, X, ChevronDown, Globe } from 'lucide-react'
+import { Menu, X, Globe } from 'lucide-react'
 import GlobalSearch from './ui/GlobalSearch'
 
 type Props = Record<string, never>
@@ -19,8 +19,6 @@ const Header: React.FC<Props> = () => {
   const { lang, toggleLanguage, t } = useTranslation()
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [newsDropdownOpen, setNewsDropdownOpen] = useState(false)
-  const [aboutDropdownOpen, setAboutDropdownOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [scrollProgress, setScrollProgress] = useState(0)
 
@@ -64,21 +62,6 @@ const Header: React.FC<Props> = () => {
 
   const isActive = (path: string) => pathname === path
 
-  const isAboutActive = () => {
-    return (
-      pathname === '/about/ipl-profile' ||
-      pathname === '/about/history' ||
-      pathname === '/about/ipl-presidents-blog'
-    )
-  }
-
-  const isNewsActive = () => {
-    return (
-      pathname === '/news-events' ||
-      pathname === '/friendship-meet'
-    )
-  }
-
   return (
     <header
       className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-red-900/95 backdrop-blur-md shadow-lg py-2' : 'bg-red-800 py-4'
@@ -102,82 +85,45 @@ const Header: React.FC<Props> = () => {
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden lg:flex items-center gap-2 flex-nowrap shrink min-w-0 overflow-hidden">
-          {navLinks.map((link) =>
-            link.hasDropdown ? (
-              <div
-                key={link.path}
-                className="relative group shrink min-w-0"
-                onMouseEnter={() => {
-                  if (link.path === '/about') setAboutDropdownOpen(true)
-                  if (link.path === '/news-events') setNewsDropdownOpen(true)
-                }}
-                onMouseLeave={() => {
-                  if (link.path === '/about') setAboutDropdownOpen(false)
-                  if (link.path === '/news-events') setNewsDropdownOpen(false)
-                }}
-              >
-                <button
+        <nav className="hidden lg:flex items-center gap-1 flex-nowrap shrink min-w-0 overflow-hidden">
+          {navLinks.map((link) => (
+            <Link
+              key={link.path}
+              href={link.path}
+              className={`
+                relative px-3 py-2 text-xs xl:text-sm font-medium transition-all duration-300 shrink whitespace-nowrap overflow-hidden text-ellipsis max-w-[110px] xl:max-w-none group
+                ${isActive(link.path)
+                  ? 'text-white'
+                  : link.path === '/contact'
+                    ? 'bg-gradient-to-r from-yellow-400 to-yellow-500 text-red-900 hover:from-yellow-300 hover:to-yellow-400 hover:scale-105 hover:shadow-lg hover:shadow-yellow-400/30 rounded-full font-bold px-4'
+                    : 'text-white/80 hover:text-white'}
+              `}
+            >
+              {/* Animated underline for non-contact links */}
+              {link.path !== '/contact' && (
+                <span
                   className={`
-                    px-2.5 py-1.5 text-xs xl:text-sm font-medium rounded-full flex items-center gap-1 transition-all duration-300 whitespace-nowrap overflow-hidden text-ellipsis max-w-[120px] xl:max-w-none
-                    ${(link.path === '/about' && isAboutActive()) || (link.path === '/news-events' && isNewsActive())
-                      ? 'text-white bg-white/20 shadow-inner'
-                      : 'text-white/80 hover:text-white hover:bg-white/10'}
+                    absolute bottom-0 left-1/2 -translate-x-1/2 h-0.5 bg-gradient-to-r from-yellow-400 via-yellow-300 to-yellow-400 rounded-full transition-all duration-300 ease-out
+                    ${isActive(link.path)
+                      ? 'w-4/5 opacity-100 shadow-sm shadow-yellow-400/50'
+                      : 'w-0 opacity-0 group-hover:w-4/5 group-hover:opacity-100'}
                   `}
-                >
-                  {t(link.label as string)}
-                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-300 ${(link.path === '/about' && aboutDropdownOpen) || (link.path === '/news-events' && newsDropdownOpen) ? 'rotate-180' : ''
-                    }`} />
-                </button>
-
-                {/* Dropdown - Enhanced animation and styling */}
-                <div
+                />
+              )}
+              {/* Glow effect on hover */}
+              {link.path !== '/contact' && (
+                <span
                   className={`
-                    absolute top-full left-1/2 -translate-x-1/2 pt-2 w-60 transform transition-all duration-300 origin-top z-50
-                    ${(link.path === '/about' && aboutDropdownOpen) || (link.path === '/news-events' && newsDropdownOpen)
-                      ? 'opacity-100 scale-100 translate-y-0 visible pointer-events-auto'
-                      : 'opacity-0 scale-95 -translate-y-2 invisible pointer-events-none'}
+                    absolute inset-0 rounded-lg transition-all duration-300
+                    ${isActive(link.path)
+                      ? 'bg-white/10 shadow-inner'
+                      : 'bg-transparent group-hover:bg-white/5'}
                   `}
-                >
-                  <div className="bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl ring-1 ring-black/5 overflow-hidden p-1.5 border border-white/20">
-                    {link.dropdownItems?.map((item) => (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        className={`
-                          block px-4 py-3 text-sm rounded-xl transition-all duration-200
-                          ${isActive(item.path)
-                            ? 'bg-red-50 text-red-700 font-semibold'
-                            : 'text-gray-700 hover:bg-gray-50 hover:text-red-600 hover:translate-x-1'}
-                        `}
-                        onClick={() => {
-                          setAboutDropdownOpen(false)
-                          setNewsDropdownOpen(false)
-                        }}
-                      >
-                        {item.label.startsWith('nav.') ? t(item.label) : item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <Link
-                key={link.path}
-                href={link.path}
-                className={`
-                  px-2.5 py-1.5 text-xs xl:text-sm font-medium rounded-full transition-all duration-300 shrink whitespace-nowrap overflow-hidden text-ellipsis max-w-[100px] xl:max-w-none
-                  ${isActive(link.path)
-                    ? 'text-white bg-white/20 shadow-inner'
-                    : link.path === '/contact'
-                      ? 'bg-white text-red-700 hover:bg-red-50 hover:scale-105 shadow-md font-bold' // Highlight Contact button
-                      : 'text-white/80 hover:text-white hover:bg-white/10'}
-                `}
-              >
-                {t(link.label as string)}
-              </Link>
-            )
-          )}
+                />
+              )}
+              <span className="relative z-10">{t(link.label as string)}</span>
+            </Link>
+          ))}
         </nav>
 
         {/* Actions */}
@@ -232,51 +178,22 @@ const Header: React.FC<Props> = () => {
           </div>
 
           <nav className="flex flex-col gap-2 flex-1">
-            {navLinks.map((link, idx) =>
-              link.hasDropdown ? (
-                <div
-                  key={link.path}
-                  className="space-y-2 animate-in slide-in-from-right-8 fade-in duration-500"
-                  style={{ animationDelay: `${idx * 50}ms` }}
-                >
-                  <div className="px-4 py-2 text-xs font-bold text-white/40 uppercase tracking-widest">
-                    {t(link.label as string)}
-                  </div>
-                  <div className="bg-white/5 rounded-2xl overflow-hidden border border-white/5">
-                    {link.dropdownItems?.map((item) => (
-                      <Link
-                        key={item.path}
-                        href={item.path}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`
-                          block px-5 py-3.5 text-base font-medium transition-all border-b border-white/5 last:border-0
-                          ${isActive(item.path)
-                            ? 'bg-red-600 text-white pl-7'
-                            : 'text-white/80 hover:bg-white/5 hover:pl-7'}
-                        `}
-                      >
-                        {item.label.startsWith('nav.') ? t(item.label) : item.label}
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <Link
-                  key={link.path}
-                  href={link.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    block px-5 py-4 rounded-2xl text-lg font-medium transition-all animate-in slide-in-from-right-8 fade-in duration-500
-                    ${isActive(link.path)
-                      ? 'bg-white text-red-900 shadow-lg scale-[1.02]'
-                      : 'text-white/90 hover:bg-white/5 border border-transparent hover:border-white/10'}
-                  `}
-                  style={{ animationDelay: `${idx * 50}ms` }}
-                >
-                  {t(link.label as string)}
-                </Link>
-              )
-            )}
+            {navLinks.map((link, idx) => (
+              <Link
+                key={link.path}
+                href={link.path}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`
+                  block px-5 py-4 rounded-2xl text-lg font-medium transition-all animate-in slide-in-from-right-8 fade-in duration-500
+                  ${isActive(link.path)
+                    ? 'bg-white text-red-900 shadow-lg scale-[1.02]'
+                    : 'text-white/90 hover:bg-white/5 border border-transparent hover:border-white/10'}
+                `}
+                style={{ animationDelay: `${idx * 50}ms` }}
+              >
+                {t(link.label as string)}
+              </Link>
+            ))}
           </nav>
 
           <div className="mt-8 pt-8 border-t border-white/10 text-center text-white/40 text-sm">
