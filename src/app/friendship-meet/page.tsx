@@ -6,7 +6,7 @@ import { Users, Heart, Calendar, MapPin, Camera, Handshake, ArrowRight, Sparkles
 import { useTranslation } from '@/contexts/TranslationContext'
 
 export default function FriendshipMeet() {
-    const { t } = useTranslation()
+    const { t, lang } = useTranslation()
     const [selectedYear, setSelectedYear] = useState('2024')
 
     const friendsDayEvents = [
@@ -19,7 +19,11 @@ export default function FriendshipMeet() {
             description: 'IPL members celebrated International Friendship Day with various cultural programs, gift exchanges, and community gatherings.',
             image: 'https://images.unsplash.com/photo-1511632765486-a01980e01a18?w=800&q=80',
             participants: '500+',
-            activities: ['Cultural Programs', 'Gift Exchange', 'Community Gathering', 'Friendship Pledge']
+            activities: ['Cultural Programs', 'Gift Exchange', 'Community Gathering', 'Friendship Pledge'],
+            titleTa: 'சர்வதேச நண்பர்கள் தின கொண்டாட்டம் 2024',
+            locationTa: 'இந்தியா முழுவதும் பல இடங்களில்',
+            descriptionTa: 'ஐபிஎல் உறுப்பினர்கள் பல்வேறு கலாச்சார நிகழ்ச்சிகள், பரிசு பரிமாற்றங்கள் மற்றும் சமூகக் கூட்டங்களுடன் சர்வதேச நண்பர்கள் தினத்தைக் கொண்டாடினர்.',
+            activitiesTa: ['கலாச்சார நிகழ்ச்சிகள்', 'பரிசு பரிமாற்றம்', 'சமூகக் கூடல்', 'நட்பு உறுதிமொழி']
         },
         {
             id: 2,
@@ -30,7 +34,11 @@ export default function FriendshipMeet() {
             description: 'A day dedicated to celebrating the bonds of friendship with pen pals from around the world.',
             image: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=800&q=80',
             participants: '450+',
-            activities: ['Letter Writing', 'Cultural Exchange', 'Friendship Band Distribution', 'Group Photos']
+            activities: ['Letter Writing', 'Cultural Exchange', 'Friendship Band Distribution', 'Group Photos'],
+            titleTa: 'சர்வதேச நண்பர்கள் தின கொண்டாட்டம் 2023',
+            locationTa: 'புதுதில்லி & மண்டல கிளைகள்',
+            descriptionTa: 'உலகம் முழுவதிலும் உள்ள பேனா நண்பர்களுடனான நட்பின் பந்தத்தைக் கொண்டாட அர்ப்பணிக்கப்பட்ட ஒரு நாள்.',
+            activitiesTa: ['கடிதம் எழுதுதல்', 'கலாச்சார பரிமாற்றம்', 'நட்பு கயிறு வழங்கல்', 'குழு புகைப்படங்கள்']
         },
         {
             id: 3,
@@ -41,7 +49,11 @@ export default function FriendshipMeet() {
             description: 'IPL organized special friendship day events to honor the spirit of penpal friendships.',
             image: 'https://images.unsplash.com/photo-1522543558187-768b6df7c25c?w=800&q=80',
             participants: '400+',
-            activities: ['Friendship Cards', 'Cultural Performances', 'Unity March', 'Social Gathering']
+            activities: ['Friendship Cards', 'Cultural Performances', 'Unity March', 'Social Gathering'],
+            titleTa: 'சர்வதேச நண்பர்கள் தின கொண்டாட்டம் 2022',
+            locationTa: 'மும்பை & மண்டல அலுவலகங்கள்',
+            descriptionTa: 'பேனாநண்பர் நட்பின் உணர்வை கௌரவிக்க ஐபிஎல் சிறப்பு நண்பர்கள் தின நிகழ்வுகளை ஏற்பாடு செய்தது.',
+            activitiesTa: ['நட்பு அட்டைகள்', 'கலாச்சார நிகழ்ச்சிகள்', 'ஒற்றுமைப் பேரணி', 'சமூகக் கூடல்']
         }
     ]
 
@@ -88,6 +100,21 @@ export default function FriendshipMeet() {
         { number: '50+', label: t('meet.stats.cities', 'Cities'), icon: MapPin },
         { number: '30+', label: t('meet.stats.years', 'Years'), icon: Star }
     ]
+
+    const getLocalized = (event: any) => {
+        if (lang === 'ta') {
+            return {
+                title: event.titleTa || event.title,
+                location: event.locationTa || event.location,
+                description: event.descriptionTa || event.description,
+            }
+        }
+        return {
+            title: event.title,
+            location: event.location,
+            description: event.description,
+        }
+    }
 
     return (
         <div className="min-h-screen bg-neutral-50">
@@ -241,62 +268,65 @@ export default function FriendshipMeet() {
                 </div>
 
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {friendsDayEvents.map((event) => (
-                        <div
-                            key={event.id}
-                            className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-100 hover:-translate-y-1"
-                        >
-                            <div className="relative h-48 overflow-hidden">
-                                <Image
-                                    src={event.image}
-                                    alt={event.title}
-                                    fill
-                                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                                />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                                <div className="absolute bottom-4 left-4 right-4">
-                                    <span className="inline-block px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full mb-2">
-                                        {event.year}
-                                    </span>
-                                </div>
-                            </div>
-
-                            <div className="p-6">
-                                <h4 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-red-700 transition-colors">
-                                    {event.title}
-                                </h4>
-
-                                <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
-                                    <Calendar className="w-4 h-4" />
-                                    <span>{event.date}</span>
-                                </div>
-
-                                <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
-                                    <MapPin className="w-4 h-4" />
-                                    <span>{event.location}</span>
-                                </div>
-
-                                <p className="text-sm text-neutral-600 mb-4">
-                                    {event.description}
-                                </p>
-
-                                <div className="flex items-center gap-2 mb-3">
-                                    <Users className="w-4 h-4 text-red-600" />
-                                    <span className="text-sm font-semibold text-neutral-900">
-                                        {event.participants} Participants
-                                    </span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {event.activities.map((activity, idx) => (
-                                        <span key={idx} className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded-full">
-                                            {activity}
+                    {friendsDayEvents.map((event) => {
+                        const localized = getLocalized(event)
+                        return (
+                            <div
+                                key={event.id}
+                                className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 border border-neutral-100 hover:-translate-y-1"
+                            >
+                                <div className="relative h-48 overflow-hidden">
+                                    <Image
+                                        src={event.image}
+                                        alt={localized.title}
+                                        fill
+                                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                        <span className="inline-block px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-full mb-2">
+                                            {event.year}
                                         </span>
-                                    ))}
+                                    </div>
+                                </div>
+
+                                <div className="p-6">
+                                    <h4 className="text-lg font-bold text-neutral-900 mb-2 group-hover:text-red-700 transition-colors">
+                                        {localized.title}
+                                    </h4>
+
+                                    <div className="flex items-center gap-2 text-sm text-neutral-600 mb-2">
+                                        <Calendar className="w-4 h-4" />
+                                        <span>{event.date}</span>
+                                    </div>
+
+                                    <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
+                                        <MapPin className="w-4 h-4" />
+                                        <span>{localized.location}</span>
+                                    </div>
+
+                                    <p className="text-sm text-neutral-600 mb-4">
+                                        {localized.description}
+                                    </p>
+
+                                    <div className="flex items-center gap-2 mb-3">
+                                        <Users className="w-4 h-4 text-red-600" />
+                                        <span className="text-sm font-semibold text-neutral-900">
+                                            {event.participants} Participants
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {event.activities.map((activity, idx) => (
+                                            <span key={idx} className="px-2 py-1 bg-red-50 text-red-700 text-xs rounded-full">
+                                                {activity}
+                                            </span>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    ))}
+                        )
+                    })}
                 </div>
             </section>
 
