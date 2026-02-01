@@ -101,7 +101,16 @@ export default function FriendshipMeet() {
         { number: '30+', label: t('meet.stats.years', 'Years'), icon: Star }
     ]
 
-    const getLocalized = (event: any) => {
+    interface LocalizableEvent {
+        title: string;
+        titleTa?: string;
+        location: string;
+        locationTa?: string;
+        description: string;
+        descriptionTa?: string;
+    }
+
+    const getLocalized = (event: LocalizableEvent) => {
         if (lang === 'ta') {
             return {
                 title: event.titleTa || event.title,

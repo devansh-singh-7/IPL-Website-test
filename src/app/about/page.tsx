@@ -117,7 +117,7 @@ export default function About() {
                         {/* Founder Quote */}
                         <div className="bg-gradient-to-br from-red-50 to-orange-50 rounded-3xl p-8 sm:p-12 border border-red-100 mb-12">
                             <blockquote className="relative">
-                                <div className="absolute -top-4 -left-2 text-6xl text-red-200 font-serif leading-none">"</div>
+                                <div className="absolute -top-4 -left-2 text-6xl text-red-200 font-serif leading-none">&quot;</div>
                                 <p className="text-lg sm:text-xl text-neutral-700 leading-relaxed italic relative z-10 pl-6">
                                     {t('home.founder_quote', 'Let us breathe friendship! Let us love our friends! Let us sow love, friendship, and humanity! Let us nurture and continue tirelessly! The journey of friendship...')}
                                 </p>
@@ -286,7 +286,7 @@ export default function About() {
                     <div className="max-w-3xl mx-auto text-center text-white">
                         <Heart className="w-12 h-12 mx-auto mb-8 text-white/80" />
                         <blockquote className="text-2xl sm:text-3xl font-light italic mb-6 leading-relaxed">
-                            "{t('home.mother_teresa_quote', 'We feel what we are doing is just a drop in the ocean but the ocean would be less because of that missing drop')}"
+                            &quot;{t('home.mother_teresa_quote', 'We feel what we are doing is just a drop in the ocean but the ocean would be less because of that missing drop')}&quot;
                         </blockquote>
                         <cite className="text-lg not-italic font-semibold text-red-100">
                             — {t('home.mother_teresa', 'Mother Teresa')}

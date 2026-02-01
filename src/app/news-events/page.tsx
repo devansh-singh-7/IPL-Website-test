@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useMemo, useState, Suspense } from 'react'
+import React, { useEffect, useMemo, useState, Suspense, useCallback } from 'react'
 import Image from 'next/image'
 import { Calendar, MapPin, Clock, TrendingUp, Sparkles, ChevronRight, X } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -275,12 +275,12 @@ function NewsEventsContent() {
     }
 
     // Helper to get localized text
-    const getLocalized = (item: NewsItem, field: 'title' | 'location' | 'description') => {
+    const getLocalized = useCallback((item: NewsItem, field: 'title' | 'location' | 'description') => {
         if (lang === 'ta') {
             return item[`${field}Ta`] || item[`${field}En`]
         }
         return item[`${field}En`]
-    }
+    }, [lang])
 
     const filteredNews = useMemo(() => {
         if (!q) return newsItems
@@ -291,7 +291,7 @@ function NewsEventsContent() {
 
             return title.includes(q) || desc.includes(q) || loc.includes(q)
         })
-    }, [q, newsItems, lang])
+    }, [q, newsItems, getLocalized])
 
 
     // Local page simply filters by query param; advanced suggestions handled globally in header or reusable component below.
@@ -316,10 +316,11 @@ function NewsEventsContent() {
             {/* Hero Section */}
             <section className="relative bg-transparent pt-12 md:pt-16 lg:pt-20 pb-8 overflow-hidden" style={{ minHeight: '320px' }}>
                 <div className="absolute inset-0 z-0 pointer-events-none">
-                    <img
+                    <Image
                         src="/Images/page-title_back.jpg"
                         alt="News & Events background"
-                        className="w-[85%] h-full opacity-40 object-contain mx-auto"
+                        fill
+                        className="opacity-40 object-contain"
                         style={{ objectPosition: 'center' }}
                     />
                     <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(0,0,0,0.04)' }} />

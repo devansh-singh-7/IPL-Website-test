@@ -179,7 +179,7 @@ export default function IPLProfilePage() {
                   {t('profile.growth.title', 'பேரவையின் வளர்ச்சி')}
                 </h2>
                 <p className="text-lg text-neutral-600 leading-relaxed mb-6">
-                  With the noble vision that "good friends create a good nation," the league has grown tremendously across India and abroad.
+                  With the noble vision that &quot;good friends create a good nation,&quot; the league has grown tremendously across India and abroad.
                 </p>
                 <p className="text-neutral-700 leading-relaxed italic">
                   நல்ல நண்பர்கள் உருவானால் நல்ல நாடு தானாகவே உருவாகும் என்ற உயரிய நோக்கத்தின் அசுரவளர்ச்சியாய் தமிழகத்தின் அனைத்து மாவட்டங்களிலும் விரிந்துள்ளது.

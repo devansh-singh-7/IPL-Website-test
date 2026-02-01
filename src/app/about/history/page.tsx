@@ -145,11 +145,11 @@ export default function HistoryPage() {
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <blockquote className="relative">
-              <div className="absolute -top-4 -left-4 text-8xl text-red-100 font-serif leading-none">"</div>
+              <div className="absolute -top-4 -left-4 text-8xl text-red-100 font-serif leading-none">&quot;</div>
               <p className="text-xl sm:text-2xl text-neutral-700 leading-relaxed text-center relative z-10 font-light italic px-8">
                 {t('history.intro.desc', 'A legacy of humanitarian service and cultural preservation spanning nearly three decades')}
               </p>
-              <div className="absolute -bottom-8 -right-4 text-8xl text-red-100 font-serif leading-none rotate-180">"</div>
+              <div className="absolute -bottom-8 -right-4 text-8xl text-red-100 font-serif leading-none rotate-180">&quot;</div>
             </blockquote>
 
             {/* Stats */}
@@ -324,7 +324,7 @@ export default function HistoryPage() {
                 {t('history.international.title', 'International Recognition')}
               </h2>
               <p className="text-neutral-400 max-w-xl mx-auto">
-                IPL's global footprint and international engagements.
+                IPL&apos;s global footprint and international engagements.
               </p>
             </div>
 
