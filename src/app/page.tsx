@@ -20,9 +20,9 @@ import { useTranslation } from '@/contexts/TranslationContext'
 import CountUp from '@/components/ui/CountUp'
 
 // Images referenced from public folder
-const img1 = '/Images/Screenshot 2025-10-31 190330.png'
-const img2 = '/Images/Screenshot 2025-10-31 191033.png'
-const img3 = '/Images/Screenshot 2025-10-31 191111.png'
+const img1 = '/Images/carousel-1.jpg'
+const img2 = '/Images/carousel-2.jpg'
+const img3 = '/Images/carousel-3.jpg'
 
 type ImageItem = { src: string; alt?: string }
 

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Users, Heart, Calendar, MapPin, Camera, Handshake, ArrowRight, Sparkles, Star, Globe, Gift, Award } from 'lucide-react'
+import { Users, Heart, Calendar, MapPin, Camera, Handshake, ArrowRight, Sparkles, Globe, Gift, Award } from 'lucide-react'
 import { useTranslation } from '@/contexts/TranslationContext'
 
 export default function FriendshipMeet() {
@@ -87,19 +87,7 @@ export default function FriendshipMeet() {
         }
     ]
 
-    const highlights = [
-        { icon: Users, title: t('meet.highlight1.title', 'Meet Pen Friends'), description: t('meet.highlight1.desc', "Connect with friends you've been writing to for years"), color: 'from-red-600 to-red-700' },
-        { icon: Heart, title: t('meet.highlight2.title', 'Family Gathering'), description: t('meet.highlight2.desc', 'Bring your family and celebrate together'), color: 'from-rose-600 to-rose-700' },
-        { icon: Globe, title: t('meet.highlight3.title', 'Cultural Exchange'), description: t('meet.highlight3.desc', 'Experience diverse cultures and traditions'), color: 'from-amber-600 to-amber-700' },
-        { icon: Camera, title: t('meet.highlight4.title', 'Memorable Moments'), description: t('meet.highlight4.desc', 'Create lasting memories and friendships'), color: 'from-blue-600 to-blue-700' },
-    ]
 
-    const stats = [
-        { number: '28+', label: t('meet.stats.meets', 'Annual Meets'), icon: Calendar },
-        { number: '1000+', label: t('meet.stats.attendees', 'Attendees'), icon: Users },
-        { number: '50+', label: t('meet.stats.cities', 'Cities'), icon: MapPin },
-        { number: '30+', label: t('meet.stats.years', 'Years'), icon: Star }
-    ]
 
     interface LocalizableEvent {
         title: string;
@@ -153,52 +141,7 @@ export default function FriendshipMeet() {
                 </div>
             </section>
 
-            {/* Stats Section */}
-            <section className="container-custom mx-auto mt-6 sm:mt-8 mb-16 sm:mb-24 px-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
-                    {stats.map((stat, index) => {
-                        const Icon = stat.icon
-                        return (
-                            <div key={index} className="group bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-neutral-200 hover:border-red-200 shadow-sm hover:shadow-xl transition-all duration-300 text-center">
-                                <div className="w-10 h-10 sm:w-12 sm:h-12 mx-auto rounded-lg sm:rounded-xl bg-red-50 flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform">
-                                    <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-red-700" />
-                                </div>
-                                <div className="text-xl sm:text-2xl font-extrabold text-neutral-900 mb-1">{stat.number}</div>
-                                <div className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-neutral-500">{stat.label}</div>
-                            </div>
-                        )
-                    })}
-                </div>
-            </section>
 
-            {/* What is Friendship Meet */}
-            <section className="container-custom mx-auto mb-24">
-                <div className="max-w-5xl mx-auto">
-                    <div className="text-center mb-14">
-                        <h2 className="text-3xl md:text-4xl font-bold text-neutral-900 mb-4">
-                            {t('meet.what_title', 'What is Friendship Meet?')}
-                        </h2>
-                        <p className="text-lg text-neutral-600 max-w-2xl mx-auto leading-relaxed">
-                            {t('meet.what_desc', 'An annual gathering where pen friends across the world meet in person to celebrate the bonds formed through letters.')}
-                        </p>
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-8">
-                        {highlights.map((highlight, index) => {
-                            const Icon = highlight.icon
-                            return (
-                                <div key={index} className="group bg-white rounded-2xl p-8 border border-neutral-200 hover:border-red-200 shadow-sm hover:shadow-xl transition-all duration-300">
-                                    <div className={`w-14 h-14 rounded-xl bg-linear-to-br ${highlight.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform`}>
-                                        <Icon className="w-7 h-7 text-white" />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-neutral-900 mb-3 group-hover:text-red-700 transition-colors">{highlight.title}</h3>
-                                    <p className="text-neutral-600 leading-relaxed">{highlight.description}</p>
-                                </div>
-                            )
-                        })}
-                    </div>
-                </div>
-            </section>
 
             {/* International Friendship Day Section */}
             <section className="container-custom mx-auto px-4 mb-16 sm:mb-24">
